@@ -61,6 +61,48 @@ binary_cols = ["ProdTaken", "Passport", "OwnCar"]
 gender_col = ["Gender"]
 
 # ================================================================
+# define column transformers
+# ================================================================
+# numeric transformer
+numeric_transformer = Pipeline([
+    ("scaler", StandardScaler())
+])
+
+# ordinal transformer
+ordinal_transformer = Pipeline([
+    ("ordinal", OrdinalEncoder(categories=ordinal_categories))
+])
+
+# nominal transformer
+nominal_transformer = Pipeline([
+    ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+])
+
+# binary transformer
+binary_transformer = "passthrough"
+
+# gender column transformer
+def gender_cleaner(X):
+    return X.iloc[:, 0].str.replace("Fe Male", "Female", regex=False).to_frame()
+
+gender_transformer = Pipeline([
+    ("clean", FunctionTransformer(gender_cleaner, validate=False)),
+    ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+])
+
+# assemble column preprocessor
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("num", numeric_transformer, numeric_cols),
+        ("ord", ordinal_transformer, ordinal_feature_names),
+        ("nom", nominal_transformer, nominal_cols),
+        ("gender", gender_transformer, gender_col),
+        ("bin", binary_transformer, binary_cols)
+    ],
+    remainder="drop"
+)
+
+# ================================================================
 # train test data split
 # ================================================================
 # X contains the features and y contains the target variable
@@ -72,10 +114,14 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 print("Train test split completed successfully.")
 
 # ================================================================
-# save to csv after split
+# apply preprocessor
 # ================================================================
-X_train.to_csv("X_train.csv",index=False)
-X_test.to_csv("X_test.csv",index=False)
+preprocessor.set_output(transform="pandas")
+X_train_transformed = preprocessor.fit_transform(X_train)
+X_test_transformed = preprocessor.transform(X_test)
+
+X_train_transformed.to_csv("X_train.csv",index=False)
+X_test_transformed.to_csv("X_test.csv",index=False)
 y_train.to_csv("y_train.csv",index=False)
 y_test.to_csv("y_test.csv",index=False)
 print("Data preprocessing completed successfully.")
