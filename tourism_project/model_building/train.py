@@ -186,32 +186,32 @@ best_model = grid_search.best_estimator_
 #         "test_R2": test_r2
 #     })
 
-    # Save the model locally
-    model_path = "best_model_v1.joblib"
-    joblib.dump(best_model, model_path)
+# Save the model locally
+model_path = "best_model_v1.joblib"
+joblib.dump(best_model, model_path)
 
-    # Log the model artifact
-    # mlflow.log_artifact(model_path, artifact_path="model")
-    print(f"Model saved as artifact at: {model_path}")
+# Log the model artifact
+# mlflow.log_artifact(model_path, artifact_path="model")
+print(f"Model saved as artifact at: {model_path}")
 
-    # Upload to Hugging Face
-    repo_id = "lcsekar/tourism-project-model"
-    repo_type = "model"
+# Upload to Hugging Face
+repo_id = "lcsekar/tourism-project-model"
+repo_type = "model"
 
-    # Step 1: Check if the space exists
-    try:
-        api.repo_info(repo_id=repo_id, repo_type=repo_type)
-        print(f"Space '{repo_id}' already exists. Using it.")
-    except RepositoryNotFoundError:
-        print(f"Space '{repo_id}' not found. Creating new space...")
-        create_repo(repo_id=repo_id, repo_type=repo_type, private=False)
-        print(f"Space '{repo_id}' created.")
+# Step 1: Check if the space exists
+try:
+    api.repo_info(repo_id=repo_id, repo_type=repo_type)
+    print(f"Space '{repo_id}' already exists. Using it.")
+except RepositoryNotFoundError:
+    print(f"Space '{repo_id}' not found. Creating new space...")
+    create_repo(repo_id=repo_id, repo_type=repo_type, private=False)
+    print(f"Space '{repo_id}' created.")
 
-    # create_repo("churn-model", repo_type="model", private=False)
-    api.upload_file(
-        path_or_fileobj="best_model_v1.joblib",
-        path_in_repo="best_model_v1.joblib",
-        repo_id=repo_id,
-        repo_type=repo_type,
-    )
-    print(f"Model uploaded to Hugging Face Hub at repo: {repo_id}")
+# create_repo("churn-model", repo_type="model", private=False)
+api.upload_file(
+    path_or_fileobj="best_model_v1.joblib",
+    path_in_repo="best_model_v1.joblib",
+    repo_id=repo_id,
+    repo_type=repo_type,
+)
+print(f"Model uploaded to Hugging Face Hub at repo: {repo_id}")
