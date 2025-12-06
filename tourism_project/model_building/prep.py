@@ -50,7 +50,7 @@ ordinal_categories = list(ordinal_cols.values())
 
 # nominal columns
 nominal_cols = [
-    "TypeofContact", "Occupation", 
+    "TypeofContact", "Occupation",
     "ProductPitched", "MaritalStatus"
 ]
 
@@ -84,7 +84,7 @@ binary_transformer = "passthrough"
 # gender column transformer
 def gender_cleaner(X):
     return X.iloc[:, 0].str.replace("Fe Male", "Female", regex=False).to_frame()
-    
+
 gender_transformer = Pipeline([
     ("clean", FunctionTransformer(gender_cleaner, validate=False)),
     ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
