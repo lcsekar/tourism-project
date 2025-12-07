@@ -67,15 +67,12 @@ ordinal_categories = list(ordinal_cols.values())
 
 # nominal columns
 nominal_cols = [
-    "TypeofContact", "Occupation",
+    "Gender", "TypeofContact", "Occupation",
     "ProductPitched", "MaritalStatus"
 ]
 
 # binary columns
 binary_cols = ["ProdTaken", "Passport", "OwnCar"]
-
-# gender is also a binary column, but it needs special treatment
-gender_col = ["Gender"]
 
 # ================================================================
 # define column transformers
@@ -98,22 +95,12 @@ nominal_transformer = Pipeline([
 # binary transformer
 binary_transformer = "passthrough"
 
-# gender column transformer
-def gender_cleaner(X):
-    return X.iloc[:, 0].str.replace("Fe Male", "Female", regex=False).to_frame()
-
-gender_transformer = Pipeline([
-    ("clean", FunctionTransformer(gender_cleaner, validate=False)),
-    ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
-])
-
 # assemble column preprocessor
 preprocessor = ColumnTransformer(
     transformers=[
         ("num", numeric_transformer, numeric_cols),
         ("ord", ordinal_transformer, ordinal_feature_names),
         ("nom", nominal_transformer, nominal_cols),
-        ("gender", gender_transformer, gender_col),
         ("bin", binary_transformer, binary_cols)
     ],
     remainder="drop"

@@ -50,15 +50,17 @@ ordinal_categories = list(ordinal_cols.values())
 
 # nominal columns
 nominal_cols = [
-    "TypeofContact", "Occupation",
+    "Gender", "TypeofContact", "Occupation",
     "ProductPitched", "MaritalStatus"
 ]
 
 # binary columns
 binary_cols = ["ProdTaken", "Passport", "OwnCar"]
 
-# gender is also a binary column, but it needs special treatment
-gender_col = ["Gender"]
+# ================================================================
+# data cleaning for gender column
+# ================================================================
+df["Gender"] = df["Gender"].replace({"Fe Male": "Female"})
 
 # ================================================================
 # train test data split
