@@ -55,7 +55,7 @@ nominal_cols = [
 ]
 
 # binary columns
-binary_cols = ["ProdTaken", "Passport", "OwnCar"]
+binary_cols = ["Passport", "OwnCar"]
 
 # ================================================================
 # data cleaning for gender column
@@ -66,11 +66,11 @@ df["Gender"] = df["Gender"].replace({"Fe Male": "Female"})
 # train test data split
 # ================================================================
 # X contains the features and y contains the target variable
-X = df[numeric_cols + ordinal_feature_names + nominal_cols + binary_cols + gender_col]
+X = df[numeric_cols + ordinal_feature_names + nominal_cols + binary_cols]
 y = df[target]
 
 # 80% for training and 20% for testing
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 print("Train test split completed successfully.")
 
 # ================================================================

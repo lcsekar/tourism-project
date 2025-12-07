@@ -6,8 +6,11 @@ from sklearn.pipeline import Pipeline, make_pipeline
 
 # for model training, tuning, and evaluation
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
+
+# XGBoost
+import xgboost as xgb
 
 # for model serialization
 import joblib
@@ -72,7 +75,7 @@ nominal_cols = [
 ]
 
 # binary columns
-binary_cols = ["ProdTaken", "Passport", "OwnCar"]
+binary_cols = ["Passport", "OwnCar"]
 
 # ================================================================
 # define column transformers
@@ -106,29 +109,49 @@ preprocessor = ColumnTransformer(
     remainder="drop"
 )
 
-# Creating a Random Forest Regressor model
-model = RandomForestClassifier(random_state=42)
+# ================================================================
+# train the model
+# ================================================================
+# compute scale_pos_weight
+scale_pos_weight = len(y_train[y_train==0]) / len(y_train[y_train==1])
+
+# creating a XGBClassifier model
+model = xgb.XGBClassifier(
+    objective='binary:logistic',
+    eval_metric='logloss',
+    # use_label_encoder=False,
+    scale_pos_weight=scale_pos_weight,
+    random_state=42,
+    n_jobs=-1
+)
 
 # hyper-parameter grid
 param_grid = {
-    "randomforestclassifier__n_estimators": [100, 200, 300],
-    "randomforestclassifier__max_depth": [None, 5, 10, 15, 20],
-    "randomforestclassifier__max_features": ["sqrt", "log2", None],
-    "randomforestclassifier__min_samples_split": [2, 5, 10],
-    "randomforestclassifier__min_samples_leaf": [1, 2, 4]
+    "xgbclassifier__n_estimators": [100, 200, 300],
+    "xgbclassifier__max_depth": [3, 5, 7],
+    "xgbclassifier__learning_rate": [0.01, 0.05, 0.1],
+    "xgbclassifier__subsample": [0.7, 0.8, 1.0],
+    "xgbclassifier__colsample_bytree": [0.7, 0.8, 1.0]
 }
 
-# Creating a pipeline with preprocessor and model
+# creating a pipeline with preprocessor and model
 model_pipeline = make_pipeline(preprocessor, model)
 
-# Fitting the model on the training data
+# stratified CV
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+# fitting the model on the training data
 print("Starting model training...")
-grid_search = GridSearchCV(model_pipeline, param_grid, cv=5, n_jobs=-1, scoring='accuracy')
+grid_search = GridSearchCV(model_pipeline, param_grid, cv=skf, n_jobs=-1, scoring='f1')
 grid_search.fit(X_train, y_train)
 print("Model training completed.")
 
 # best model
 best_model = grid_search.best_estimator_
+
+# print F1 score on train and test
+print("F1 Score on Training Set:", f1_score(y_train, best_model.predict(X_train)))
+print("F1 Score on Test Set:", f1_score(y_test, best_model.predict(X_test)))
 
 # with mlflow.start_run():
 #     # Grid Search
@@ -173,6 +196,9 @@ best_model = grid_search.best_estimator_
 #         "test_R2": test_r2
 #     })
 
+# ================================================================
+# save the model locally and log as artifact
+# ================================================================
 # Save the model locally
 model_path = "best_model_v1.joblib"
 joblib.dump(best_model, model_path)
