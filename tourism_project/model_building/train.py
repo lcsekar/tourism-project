@@ -21,10 +21,10 @@ import os
 # for hugging face space authentication to upload files
 from huggingface_hub import login, HfApi, create_repo
 from huggingface_hub.utils import RepositoryNotFoundError, HfHubHTTPError
-# import mlflow
+import mlflow
 
-# mlflow.set_tracking_uri("http://localhost:5000")
-# mlflow.set_experiment("mlops-training-experiment")
+mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_experiment("tourist-project-experiment")
 
 api = HfApi()
 
@@ -141,60 +141,37 @@ model_pipeline = make_pipeline(preprocessor, model)
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 # fitting the model on the training data
-print("Starting model training...")
-grid_search = GridSearchCV(model_pipeline, param_grid, cv=skf, n_jobs=-1, scoring='f1')
-grid_search.fit(X_train, y_train)
-print("Model training completed.")
+with mlflow.start_run():
+    print("Starting model training...")
+    grid_search = GridSearchCV(model_pipeline, param_grid, cv=skf, n_jobs=-1, scoring='f1')
+    grid_search.fit(X_train, y_train)
+    print("Model training completed.")
 
-# best model
-best_model = grid_search.best_estimator_
+    # Log parameter sets
+    results = grid_search.cv_results_
+    for i in range(len(results['params'])):
+        param_set = results['params'][i]
+        mean_score = results['mean_test_score'][i]
 
-# print F1 score on train and test
-print("F1 Score on Training Set:", f1_score(y_train, best_model.predict(X_train)))
-print("F1 Score on Test Set:", f1_score(y_test, best_model.predict(X_test)))
+        with mlflow.start_run(nested=True):
+            mlflow.log_params(param_set)
+            mlflow.log_metric("mean_test_f1", mean_score)
 
-# with mlflow.start_run():
-#     # Grid Search
-#     grid_search = GridSearchCV(model_pipeline, param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error')
-#     grid_search.fit(Xtrain, ytrain)
+    # best model
+    mlflow.log_params(grid_search.best_params_)
+    best_model = grid_search.best_estimator_
 
-#     # Log parameter sets
-#     results = grid_search.cv_results_
-#     for i in range(len(results['params'])):
-#         param_set = results['params'][i]
-#         mean_score = results['mean_test_score'][i]
+    train_f1 = f1_score(y_train, best_model.predict(X_train))
+    test_f1 = f1_score(y_test, best_model.predict(X_test))
 
-#         with mlflow.start_run(nested=True):
-#             mlflow.log_params(param_set)
-#             mlflow.log_metric("mean_neg_mse", mean_score)
+    mlflow.log_metrics({
+        "train_f1": train_f1,
+        "test_f1": test_f1
+    })
 
-#     # Best model
-#     mlflow.log_params(grid_search.best_params_)
-#     best_model = grid_search.best_estimator_
-
-#     # Predictions
-#     y_pred_train = best_model.predict(Xtrain)
-#     y_pred_test = best_model.predict(Xtest)
-
-#     # Metrics
-#     train_rmse = mean_squared_error(ytrain, y_pred_train, squared=False)
-#     test_rmse = mean_squared_error(ytest, y_pred_test, squared=False)
-
-#     train_mae = mean_absolute_error(ytrain, y_pred_train)
-#     test_mae = mean_absolute_error(ytest, y_pred_test)
-
-#     train_r2 = r2_score(ytrain, y_pred_train)
-#     test_r2 = r2_score(ytest, y_pred_test)
-
-#     # Log metrics
-#     mlflow.log_metrics({
-#         "train_RMSE": train_rmse,
-#         "test_RMSE": test_rmse,
-#         "train_MAE": train_mae,
-#         "test_MAE": test_mae,
-#         "train_R2": train_r2,
-#         "test_R2": test_r2
-#     })
+    # print F1 score on train and test
+    print("F1 Score on Training Set:", train_f1)
+    print("F1 Score on Test Set:", test_f1)
 
 # ================================================================
 # save the model locally and log as artifact
