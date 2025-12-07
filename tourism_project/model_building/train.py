@@ -169,9 +169,10 @@ with mlflow.start_run():
         "test_f1": test_f1
     })
 
-    # print F1 score on train and test
+    print("========== MODEL PERFORMANCE SCORES ==========")
     print("F1 Score on Training Set:", train_f1)
     print("F1 Score on Test Set:", test_f1)
+    print("==============================================")
 
 # ================================================================
 # save the model locally and log as artifact
