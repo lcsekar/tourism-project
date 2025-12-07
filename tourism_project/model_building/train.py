@@ -35,8 +35,8 @@ y_test_path = "hf://datasets/lcsekar/tourism-project-data/y_test.csv"
 
 X_train = pd.read_csv(X_train_path)
 X_test = pd.read_csv(X_test_path)
-y_train = pd.read_csv(y_train_path)
-y_test = pd.read_csv(y_test_path)
+y_train = pd.read_csv(y_train_path).values.ravel()
+y_test = pd.read_csv(y_test_path).values.ravel()
 print("Data files loaded from HF successfully.")
 
 # ================================================================
