@@ -80,4 +80,7 @@ if st.button("Predict"):
     prediction = model.predict(input_data)[0]
     logger.info(f"Prediction: {prediction}")
     st.subheader("Prediction Result:")
-    st.success(f"The customer is {'likely' if prediction == 1 else 'not likely'} to purchase the tourism package.")
+    if prediction == 1:
+        st.success("The customer is likely to purchase the tourism package.", icon="✅")
+    else:
+        st.error("The customer is NOT likely to purchase the tourism package.", icon="❌")
