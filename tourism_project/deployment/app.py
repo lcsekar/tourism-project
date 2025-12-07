@@ -3,9 +3,19 @@ import pandas as pd
 from huggingface_hub import hf_hub_download
 import joblib
 
+# for logging
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Download and load the trained model
-model_path = hf_hub_download(repo_id="lcsekar/tourism-project-model", filename="best_model_v1.joblib")
-model = joblib.load(model_path)
+@st.cache_resource
+def load_model():
+    model_path = hf_hub_download(repo_id="lcsekar/tourism-project-model", filename="best_model_v1.joblib")
+    return joblib.load(model_path)
+
+model = load_model()
 
 # Streamlit UI
 st.title("Visit with Us - Purchase Prediction App")
@@ -63,11 +73,11 @@ input_data = pd.DataFrame([{
     'NumberOfFollowups': num_followups,
     'DurationOfPitch': duration_of_pitch
 }])
-print(input_data)
+logger.info(input_data)
 
 # Predict button
 if st.button("Predict"):
     prediction = model.predict(input_data)[0]
-    print(f"Prediction: {prediction}")
+    logger.info(f"Prediction: {prediction}")
     st.subheader("Prediction Result:")
     st.success(f"The customer is {'likely' if prediction == 1 else 'not likely'} to purchase the tourism package.")
