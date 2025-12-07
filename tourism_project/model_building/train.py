@@ -62,7 +62,6 @@ ordinal_cols = {
     "CityTier": [1, 2, 3],
     "PreferredPropertyStar": [3., 4., 5.],
     "PitchSatisfactionScore": [1, 2, 3, 4, 5],
-    "Designation": ["Executive", "Manager", "Senior Manager", "AVP", "VP"]
 }
 
 ordinal_feature_names = list(ordinal_cols.keys())
@@ -71,7 +70,7 @@ ordinal_categories = list(ordinal_cols.values())
 # nominal columns
 nominal_cols = [
     "Gender", "TypeofContact", "Occupation",
-    "ProductPitched", "MaritalStatus"
+    "ProductPitched", "MaritalStatus", "Designation",
 ]
 
 # binary columns
@@ -131,7 +130,8 @@ param_grid = {
     "xgbclassifier__max_depth": [3, 5, 7],
     "xgbclassifier__learning_rate": [0.01, 0.05, 0.1],
     "xgbclassifier__subsample": [0.7, 0.8, 1.0],
-    "xgbclassifier__colsample_bytree": [0.7, 0.8, 1.0]
+    "xgbclassifier__colsample_bytree": [0.7, 0.8, 1.0],
+    "xgbclassifier__min_child_weight": [1, 3, 5, 7],
 }
 
 # creating a pipeline with preprocessor and model
