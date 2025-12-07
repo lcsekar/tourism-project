@@ -45,7 +45,7 @@ with col2:
 # Assemble input into DataFrame
 input_data = pd.DataFrame([{
     'Age': age,
-    'TypeOfContact': type_of_contact,
+    'TypeofContact': type_of_contact,
     'CityTier': city_tier,
     'Occupation': occupation,
     'Gender': gender,
